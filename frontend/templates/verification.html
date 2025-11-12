@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}DDoS Detection Dashboard - Verification Queue{% endblock %}
+
+{% block nav_verification %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-light">Verification Queue</h1>
+        <div class="d-flex gap-2">
+            <button class="btn btn-danger btn-sm" id="bulk-block-btn" disabled>
+                Block Selected
+            </button>
+            <button class="btn btn-success btn-sm" id="bulk-release-btn" disabled>
+                Release Selected
+            </button>
+        </div>
+    </div>
+
+    <!-- Suspicious IPs List -->
+    <div id="verification-list" class="row g-3">
+        <!-- Populated by JavaScript -->
+    </div>
+
+    <div id="no-suspicious" class="alert alert-info text-center">
+        <p class="mb-0">No suspicious IPs at this time.</p>
+    </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-light">Add Note</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control bg-darker border-secondary text-light" id="note-text" rows="3" placeholder="Enter note..."></textarea>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save-note-btn">Save Note</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/verification.js') }}"></script>
+{% endblock %}

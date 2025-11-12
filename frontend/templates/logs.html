@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}DDoS Detection Dashboard - Audit Logs{% endblock %}
+
+{% block nav_logs %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 text-light">Audit Logs</h1>
+        <div class="d-flex gap-2">
+            <input type="text" class="form-control form-control-sm" id="filter-ip" placeholder="Filter by IP...">
+            <select class="form-select form-select-sm" id="filter-action" style="width: auto;">
+                <option value="">All Actions</option>
+                <option value="block">Block</option>
+                <option value="release">Release</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="card bg-dark border-secondary">
+        <div class="card-body p-0" style="overflow-x: auto;">
+            <table class="table table-dark table-hover mb-0" id="logs-table">
+                <thead>
+                    <tr class="text-muted">
+                        <th style="width: 180px;">Timestamp</th>
+                        <th style="width: 120px;">Action</th>
+                        <th style="width: 130px;">IP Address</th>
+                        <th style="width: 120px;">Operator</th>
+                        <th style="width: 200px;">Reason/Note</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-tbody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/logs.js') }}"></script>
+{% endblock %}

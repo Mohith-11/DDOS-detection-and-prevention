@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}DDoS Detection Dashboard - Overview{% endblock %}
+
+{% block nav_dashboard %}active{% endblock %}
+{% block nav_dashboard_current %}page{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="h3 text-light mb-0">Dashboard</h1>
+        <div class="d-flex gap-2 flex-wrap">
+            <!-- Enhanced search and filter with proper labels and ARIA attributes -->
+            <div class="input-group input-group-sm" style="max-width: 250px;">
+                <label for="search-ip" class="sr-only">Search by IP address</label>
+                <input type="text" class="form-control form-control-sm" id="search-ip" placeholder="Search IP..." aria-label="Search IP addresses">
+            </div>
+            <div style="display: flex; align-items: center;">
+                <label for="filter-status" class="sr-only">Filter by status</label>
+                <select class="form-select form-select-sm" id="filter-status" style="width: auto;" aria-label="Filter by threat status">
+                    <option value="">All Statuses</option>
+                    <option value="normal">Normal</option>
+                    <option value="suspicious">Suspicious</option>
+                    <option value="high_risk">High Risk</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4" id="summary-cards">
+        <div class="col-md-4 col-lg-2">
+            <div class="card bg-dark border-secondary" role="region" aria-label="Total flows metric">
+                <div class="card-body p-3">
+                    <div class="text-muted small">Total Flows</div>
+                    <div class="h5 text-light mt-2" id="card-total-flows" aria-live="polite">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card bg-dark border-secondary" role="region" aria-label="Active IPs metric">
+                <div class="card-body p-3">
+                    <div class="text-muted small">Active IPs</div>
+                    <div class="h5 text-light mt-2" id="card-active-ips" aria-live="polite">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card bg-dark border-danger" role="region" aria-label="High risk IPs metric">
+                <div class="card-body p-3">
+                    <div class="text-danger small">High Risk (≥90%)</div>
+                    <div class="h5 text-danger mt-2" id="card-high-risk" aria-live="polite">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card bg-dark border-warning" role="region" aria-label="Suspicious IPs metric">
+                <div class="card-body p-3">
+                    <div class="text-warning small">Suspicious (&lt;90%)</div>
+                    <div class="h5 text-warning mt-2" id="card-suspicious" aria-live="polite">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-2">
+            <div class="card bg-dark border-secondary" role="region" aria-label="Blocked IPs metric">
+                <div class="card-body p-3">
+                    <div class="text-muted small">Blocked</div>
+                    <div class="h5 text-light mt-2" id="card-blocked" aria-live="polite">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Traffic Table -->
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-header bg-darker border-secondary d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 text-light">Live Traffic</h6>
+            <small class="text-muted">Auto-updating in real-time</small>
+        </div>
+        <div class="card-body p-0" style="overflow-x: auto;" role="region" aria-label="Live traffic table">
+            <table class="table table-dark table-hover mb-0" id="traffic-table" role="grid">
+                <thead>
+                    <tr class="text-muted" role="row">
+                        <th role="columnheader" scope="col" style="width: 120px;">Timestamp</th>
+                        <th role="columnheader" scope="col" style="width: 130px;">Source IP</th>
+                        <th role="columnheader" scope="col" style="width: 130px;">Dest IP/Port</th>
+                        <th role="columnheader" scope="col" style="width: 100px;">Bytes/s</th>
+                        <th role="columnheader" scope="col" style="width: 100px;">Packets/s</th>
+                        <th role="columnheader" scope="col" style="width: 100px;">Total Pkt</th>
+                        <th role="columnheader" scope="col" style="width: 100px;">Risk %</th>
+                        <th role="columnheader" scope="col" style="width: 100px;">Status</th>
+                        <th role="columnheader" scope="col" style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="traffic-tbody" role="rowgroup">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- IP Detail Modal -->
+<div class="modal fade" id="ipDetailModal" tabindex="-1" aria-labelledby="ipDetailTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-light" id="ipDetailTitle">IP Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="ipDetailBody" role="region" aria-label="IP detail information">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

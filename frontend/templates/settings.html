@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}DDoS Detection Dashboard - Settings{% endblock %}
+
+{% block nav_settings %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <h1 class="h3 text-light mb-4">Settings & Operations</h1>
+
+    <!-- Settings Grid -->
+    <div class="row g-4">
+        <!-- Auto-Blocking Setting -->
+        <div class="col-md-6">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header bg-darker border-secondary">
+                    <h6 class="mb-0 text-light">Auto-Blocking</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Automatically block IPs with probability ≥ threshold</p>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="auto-block-toggle" checked>
+                        <label class="form-check-label text-light" for="auto-block-toggle">
+                            Enabled
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Threshold Setting -->
+        <div class="col-md-6">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header bg-darker border-secondary">
+                    <h6 class="mb-0 text-light">Risk Threshold</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Probability threshold for auto-blocking</p>
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="range" class="form-range" id="threshold-slider" min="0" max="1" step="0.05" value="0.90">
+                        <span class="text-light" id="threshold-value">0.90</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Info -->
+    <div class="row g-4 mt-4">
+        <div class="col-md-12">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header bg-darker border-secondary">
+                    <h6 class="mb-0 text-light">System Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-1">API Endpoint</p>
+                            <p class="text-light small font-monospace">/api/flows, /api/summary, /api/block, /api/release</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted small mb-1">WebSocket Channel</p>
+                            <p class="text-light small font-monospace">/ws/traffic (via Socket.IO)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+{% endblock %}

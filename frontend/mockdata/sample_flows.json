@@ -1,0 +1,41 @@
+[
+  {
+    "timestamp": "2025-11-12T08:12:34Z",
+    "src_ip": "192.168.1.105",
+    "dst_ip": "10.0.0.1",
+    "dst_port": 80,
+    "flow_bytes_s": 250000,
+    "flow_packets_s": 8000,
+    "total_packets": 12000,
+    "avg_pkt_size": 300,
+    "ddos_probability": 0.95,
+    "status": "high_risk",
+    "note": ""
+  },
+  {
+    "timestamp": "2025-11-12T08:11:20Z",
+    "src_ip": "10.0.0.50",
+    "dst_ip": "10.0.0.1",
+    "dst_port": 443,
+    "flow_bytes_s": 85000,
+    "flow_packets_s": 2500,
+    "total_packets": 5000,
+    "avg_pkt_size": 320,
+    "ddos_probability": 0.72,
+    "status": "suspicious",
+    "note": ""
+  },
+  {
+    "timestamp": "2025-11-12T08:10:15Z",
+    "src_ip": "172.16.0.20",
+    "dst_ip": "10.0.0.1",
+    "dst_port": 22,
+    "flow_bytes_s": 15000,
+    "flow_packets_s": 400,
+    "total_packets": 800,
+    "avg_pkt_size": 256,
+    "ddos_probability": 0.15,
+    "status": "normal",
+    "note": ""
+  }
+]
