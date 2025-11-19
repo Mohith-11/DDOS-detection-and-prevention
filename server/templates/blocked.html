@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Blocked IPs (Active)</h3>
+
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>IP</th>
+      <th>Blocked At</th>
+      <th>Expires At</th>
+      <th>Reason</th>
+      <th>Target Agent</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for b in blocked %}
+      <tr>
+        <td>{{ b.ip }}</td>
+        <td>{{ b.blocked_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ b.expires_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>{{ b.reason }}</td>
+        <td>{{ b.target_agent }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

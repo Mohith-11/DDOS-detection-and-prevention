@@ -27,17 +27,17 @@
         <td>{{ '%.3f'|format(a.probability) }}</td>
         <td>
           <button 
-              class="btn btn-sm btn-success verify-btn"
+              class="btn btn-sm btn-secondary verify-btn"
               data-id="{{ a.id }}"
-              data-action="verify_block">
-              Verify & Block
+              data-action="discard">
+              Discard
           </button>
 
           <button 
-              class="btn btn-sm btn-secondary verify-btn"
+              class="btn btn-sm btn-danger verify-btn"
               data-id="{{ a.id }}"
-              data-action="verify_ignore">
-              Ignore
+              data-action="block">
+              Block
           </button>
         </td>
       </tr>

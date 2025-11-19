@@ -114,11 +114,10 @@
   // --- HIGH RISK AUTO BLOCK ---
   socket.on("block_ip", (data) => {
     addAlert(
-      `<strong>HIGH RISK:</strong> ${data.ip}, prob=${data.prob.toFixed(3)}`,
+      `<strong>HIGH RISK:</strong> ${data.ip}, prob=${data.prob?.toFixed(3) ?? ''}`,
       "danger"
     );
 
-    // update statistic counter
     countHigh.innerText = parseInt(countHigh.innerText) + 1;
     countTotal.innerText = parseInt(countTotal.innerText) + 1;
   });
@@ -139,7 +138,7 @@
     addAlert(`<strong>MANUAL BLOCK:</strong> ${data.ip}`, "secondary");
   });
 
-  // --- NEW LOG ENTRY (REAL-TIME UPDATE OF RECENT LOGS) ---
+  // --- NEW LOG ENTRY ---
   socket.on("new_log", (log) => {
     const row = document.createElement("tr");
     row.innerHTML = `
@@ -154,7 +153,6 @@
 
     logsTable.prepend(row);
 
-    // keep only last 10 rows
     while (logsTable.children.length > 10) {
       logsTable.removeChild(logsTable.lastChild);
     }

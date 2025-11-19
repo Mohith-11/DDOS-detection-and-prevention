@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Packet Details — ID {{ packet.id }}</h3>
+
+<p><strong>Time:</strong> {{ packet.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+<p><strong>Agent:</strong> {{ packet.agent_id }}</p>
+<p><strong>Src IP:</strong> {{ packet.src_ip }}</p>
+<p><strong>Dst IP:</strong> {{ packet.dst_ip }}</p>
+<p><strong>Probability:</strong> {{ '%.4f'|format(packet.probability) }}</p>
+<p><strong>Status:</strong> {{ packet.status }}</p>
+
+<h4>ML Features</h4>
+<table class="table table-sm">
+  <tbody>
+    <tr><th>Flow Bytes/s</th><td>{{ packet.flow_bytes_s }}</td></tr>
+    <tr><th>Flow Packets/s</th><td>{{ packet.flow_packets_s }}</td></tr>
+    <tr><th>Total Length Fwd</th><td>{{ packet.total_length_fwd }}</td></tr>
+    <tr><th>Total Length Bwd</th><td>{{ packet.total_length_bwd }}</td></tr>
+    <tr><th>Total Fwd Packets</th><td>{{ packet.total_fwd_packets }}</td></tr>
+    <tr><th>Total Bwd Packets</th><td>{{ packet.total_bwd_packets }}</td></tr>
+    <tr><th>Avg Packet Size</th><td>{{ packet.avg_packet_size }}</td></tr>
+    <tr><th>Packet Length Mean</th><td>{{ packet.packet_length_mean }}</td></tr>
+    <tr><th>Packet Length Var</th><td>{{ packet.packet_length_var }}</td></tr>
+    <tr><th>Max Packet Len</th><td>{{ packet.max_packet_length }}</td></tr>
+    <tr><th>Min Packet Len</th><td>{{ packet.min_packet_length }}</td></tr>
+    <tr><th>Fwd Packet Len Max</th><td>{{ packet.fwd_packet_len_max }}</td></tr>
+    <tr><th>Fwd Packet Len Min</th><td>{{ packet.fwd_packet_len_min }}</td></tr>
+    <tr><th>Fwd Packet Len Mean</th><td>{{ packet.fwd_packet_len_mean }}</td></tr>
+    <tr><th>Fwd Packet Len Std</th><td>{{ packet.fwd_packet_len_std }}</td></tr>
+    <tr><th>Bwd Packet Len Mean</th><td>{{ packet.bwd_packet_len_mean }}</td></tr>
+    <tr><th>Bwd Packet Len Std</th><td>{{ packet.bwd_packet_len_std }}</td></tr>
+    <tr><th>Flow Duration</th><td>{{ packet.flow_duration }}</td></tr>
+    <tr><th>Flow IAT Mean</th><td>{{ packet.flow_iat_mean }}</td></tr>
+    <tr><th>Down/Up Ratio</th><td>{{ packet.down_up_ratio }}</td></tr>
+  </tbody>
+</table>
+
+<h4>Raw JSON</h4>
+<pre style="background:#f8f9fa; padding:10px; border-radius:6px;">{{ packet.raw | tojson(indent=2) }}</pre>
+
+{% endblock %}

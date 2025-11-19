@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import joblib
 import json
 import os
@@ -12,16 +12,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL", "postgresql://postgres:passforpostgresql@localhost/ddosdb")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# FIXED FOR PYTHON 3.12 – eventlet removed
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 db = SQLAlchemy(app)
 
-# ML Models
+# ----------------------------------------------------------
+# LOAD MODELS
+# ----------------------------------------------------------
 model = joblib.load(os.getenv("MODEL_PATH", "rf_model.pkl"))
 scaler = joblib.load(os.getenv("SCALER_PATH", "scaler.pkl"))
 selector = joblib.load(os.getenv("SELECTOR_PATH", "selector.pkl"))
@@ -38,13 +38,12 @@ else:
 
 MANUAL_THRESHOLD = float(os.getenv("MANUAL_THRESHOLD", 0.3))
 
-
-# ----------------------------------------------------------------------
-# DATABASE MODEL
-# ----------------------------------------------------------------------
+# ----------------------------------------------------------
+# DATABASE MODELS
+# ----------------------------------------------------------
 class PacketLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     agent_id = db.Column(db.String(128))
     src_ip = db.Column(db.String(64))
@@ -53,7 +52,6 @@ class PacketLog(db.Model):
     status = db.Column(db.String(32))
     verified = db.Column(db.Boolean, default=False)
 
-    # 20 ML FEATURES STORED IN DB
     flow_bytes_s = db.Column(db.Float)
     flow_packets_s = db.Column(db.Float)
     total_length_fwd = db.Column(db.Float)
@@ -77,31 +75,18 @@ class PacketLog(db.Model):
 
     raw = db.Column(db.JSON)
 
-
-# ----------------------------------------------------------------------
-# FIREWALL BLOCK ON SERVER
-# ----------------------------------------------------------------------
-def block_ip_local(ip):
-    os_type = platform.system().lower()
-    try:
-        if "windows" in os_type:
-            subprocess.run(
-                ["netsh", "advfirewall", "firewall", "add", "rule",
-                 f"name=DDoS_Block_{ip}", "dir=in", "action=block", f"remoteip={ip}"],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-            )
-        elif "linux" in os_type:
-            subprocess.run(
-                ["sudo", "iptables", "-A", "INPUT", "-s", ip, "-j", "DROP"],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-            )
-    except:
-        pass
+class BlockedIP(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ip = db.Column(db.String(64), nullable=False, index=True)
+    blocked_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    expires_at = db.Column(db.DateTime, nullable=False)
+    reason = db.Column(db.String(128))
+    target_agent = db.Column(db.String(128))
 
 
-# ----------------------------------------------------------------------
-# ML PREDICTION PIPELINE
-# ----------------------------------------------------------------------
+# ----------------------------------------------------------
+# ML Prediction
+# ----------------------------------------------------------
 def ml_predict(data):
     cols = [
         "Flow Bytes/s", "Flow Packets/s", "Total Length of Fwd Packets",
@@ -119,9 +104,9 @@ def ml_predict(data):
     return float(model.predict_proba(selected)[0][1])
 
 
-# ----------------------------------------------------------------------
+# ----------------------------------------------------------
 # ROUTES
-# ----------------------------------------------------------------------
+# ----------------------------------------------------------
 @app.route("/")
 def index():
     return redirect(url_for("dashboard"))
@@ -164,9 +149,16 @@ def verification():
     return render_template("verification.html", alerts=alerts)
 
 
-# ----------------------------------------------------------------------
-# SETTINGS PAGE
-# ----------------------------------------------------------------------
+@app.route("/blocked")
+def blocked():
+    now = datetime.now(timezone.utc)
+    active = BlockedIP.query.filter(BlockedIP.expires_at > now).order_by(BlockedIP.expires_at.asc()).all()
+    return render_template("blocked.html", blocked=active)
+
+
+# ----------------------------------------------------------
+# SETTINGS
+# ----------------------------------------------------------
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
     if request.method == "POST":
@@ -184,9 +176,9 @@ def settings():
                            manual_threshold=MANUAL_THRESHOLD)
 
 
-# ----------------------------------------------------------------------
-# RECEIVE PACKET FEATURES FROM AGENT
-# ----------------------------------------------------------------------
+# ----------------------------------------------------------
+# RECEIVE PACKET FEATURES
+# ----------------------------------------------------------
 @app.route("/api/packet_features", methods=["POST"])
 def receive_features():
     data = request.json
@@ -197,27 +189,53 @@ def receive_features():
         return jsonify({"error": "invalid features", "detail": str(e)}), 400
 
     src_ip = data.get("src_ip")
+    dst_ip = data.get("dst_ip")
+    agent_id = data.get("agent_id")
     status = "normal"
 
-    # if prob >= threshold_cfg.get("threshold", 0.9):
-    if prob >= 0.4:
-        print(f"[ALERT] High risk packet detected from {src_ip} with prob {prob}")
+    now = datetime.now(timezone.utc)
+
+    # AUTO_T = float(threshold_cfg.get("threshold", 0.9))\
+    AUTO_T = 0.4
+
+    # AUTO BLOCK CASE
+    if prob >= AUTO_T:
         status = "high_risk"
-        block_ip_local(src_ip)
-        socketio.emit("block_ip", {"ip": src_ip, "prob": prob})
+        duration_seconds = 5 * 60
+        expires = now + timedelta(seconds=duration_seconds)
 
-    elif prob >= MANUAL_THRESHOLD:
+        blocked = BlockedIP(
+            ip=src_ip,
+            blocked_at=now,
+            expires_at=expires,
+            reason="auto",
+            target_agent=agent_id
+        )
+        db.session.add(blocked)
+
+        socketio.emit("block_ip", {
+            "ip": src_ip,
+            "duration": duration_seconds,
+            "target_agent": agent_id,
+            "target_ip": dst_ip
+        })
+
+    elif prob >= MANUAL_THRESHOLD and prob < AUTO_T:
         status = "suspicious"
-        socketio.emit("suspicious", {"ip": src_ip, "prob": prob})
+        socketio.emit("suspicious", {
+            "ip": src_ip,
+            "prob": prob,
+            "agent": agent_id,
+            "dst": dst_ip
+        })
 
-    # Save full ML feature set
+    # Save packet log
     log = PacketLog(
-        agent_id=data.get("agent_id"),
+        agent_id=agent_id,
         src_ip=src_ip,
-        dst_ip=data.get("dst_ip"),
+        dst_ip=dst_ip,
         probability=prob,
         status=status,
-
         flow_bytes_s=data.get("Flow Bytes/s"),
         flow_packets_s=data.get("Flow Packets/s"),
         total_length_fwd=data.get("Total Length of Fwd Packets"),
@@ -238,64 +256,114 @@ def receive_features():
         flow_duration=data.get("Flow Duration"),
         flow_iat_mean=data.get("Flow IAT Mean"),
         down_up_ratio=data.get("Down/Up Ratio"),
-
         raw=data
     )
 
     db.session.add(log)
     db.session.commit()
+
+    socketio.emit("new_log", {
+        "id": log.id,
+        "timestamp": log.timestamp.isoformat(),
+        "agent": log.agent_id,
+        "src_ip": log.src_ip,
+        "dst_ip": log.dst_ip,
+        "prob": log.probability,
+        "status": log.status
+    })
+
     return jsonify({"probability": prob, "status": status}), 200
 
 
-# ----------------------------------------------------------------------
-# VERIFICATION
-# ----------------------------------------------------------------------
+# ----------------------------------------------------------
+# VERIFICATION ACTIONS (DISCARD / BLOCK)
+# ----------------------------------------------------------
 @app.route("/api/verify", methods=["POST"])
 def api_verify():
     data = request.json
-    alert_id = data.get("id")
+    alert_id = int(data.get("id"))
     action = data.get("action")
 
     row = PacketLog.query.get(alert_id)
     if not row:
         return jsonify({"error": "not found"}), 404
 
-    if action == "verify_block":
+    now = datetime.now(timezone.utc)
+
+    if action == "discard":
         row.verified = True
-        row.status = "high_risk"
+        row.status = "normal"
+        db.session.commit()
+        return jsonify({"status": "discarded"})
+
+    elif action == "block":
+        row.verified = True
+        row.status = "blocked"
+
+        duration_seconds = 5 * 60
+        expires = now + timedelta(seconds=duration_seconds)
+
+        blocked = BlockedIP(
+            ip=row.src_ip,
+            blocked_at=now,
+            expires_at=expires,
+            reason="manual",
+            target_agent=row.agent_id
+        )
+        db.session.add(blocked)
         db.session.commit()
 
-        block_ip_local(row.src_ip)
-        socketio.emit("block_ip", {"ip": row.src_ip})
+        socketio.emit("manual_block", {
+            "ip": row.src_ip,
+            "duration": duration_seconds,
+            "target_agent": row.agent_id,
+            "target_ip": row.dst_ip
+        })
+
         return jsonify({"status": "blocked"})
-
-    elif action == "verify_ignore":
-        row.verified = True
-        db.session.commit()
-        return jsonify({"status": "ignored"})
 
     return jsonify({"error": "invalid action"}), 400
 
 
-# ----------------------------------------------------------------------
-# MANUAL BLOCK
-# ----------------------------------------------------------------------
+# ----------------------------------------------------------
+# MANUAL BLOCK API
+# ----------------------------------------------------------
 @app.route("/api/block", methods=["POST"])
 def api_block():
     ip = request.json.get("ip")
+    target_agent = request.json.get("target_agent")
+
     if not ip:
         return jsonify({"error": "missing ip"}), 400
 
-    block_ip_local(ip)
-    socketio.emit("block_ip", {"ip": ip})
+    now = datetime.now(timezone.utc)
+    duration_seconds = int(request.json.get("duration", 300))
+    expires = now + timedelta(seconds=duration_seconds)
+
+    blocked = BlockedIP(
+        ip=ip,
+        blocked_at=now,
+        expires_at=expires,
+        reason="api",
+        target_agent=target_agent
+    )
+    db.session.add(blocked)
+    db.session.commit()
+
+    socketio.emit("manual_block", {
+        "ip": ip,
+        "duration": duration_seconds,
+        "target_agent": target_agent
+    })
+
     return jsonify({"status": "blocked"})
 
 
-# ----------------------------------------------------------------------
-# START SERVER (FIXED CONTEXT)
-# ----------------------------------------------------------------------
+# ----------------------------------------------------------
+# START SERVER
+# ----------------------------------------------------------
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
-    socketio.run(app, host="0.0.0.0",port=int(os.getenv("PORT")))
+    socketio.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
