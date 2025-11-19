@@ -8,7 +8,7 @@
     <div class="card text-white bg-primary mb-3 shadow-sm">
       <div class="card-body">
         <h5 class="card-title">Total Logs</h5>
-        <p class="card-text display-6">{{ total }}</p>
+        <p id="count-total" class="card-text display-6">{{ total }}</p>
       </div>
     </div>
   </div>
@@ -18,7 +18,7 @@
     <div class="card text-white bg-danger mb-3 shadow-sm">
       <div class="card-body">
         <h5 class="card-title">High Risk</h5>
-        <p class="card-text display-6">{{ high }}</p>
+        <p id="count-high" class="card-text display-6">{{ high }}</p>
       </div>
     </div>
   </div>
@@ -28,7 +28,7 @@
     <div class="card text-white bg-warning mb-3 shadow-sm">
       <div class="card-body">
         <h5 class="card-title">Suspicious</h5>
-        <p class="card-text display-6">{{ suspicious }}</p>
+        <p id="count-suspicious" class="card-text display-6">{{ suspicious }}</p>
       </div>
     </div>
   </div>
@@ -37,7 +37,7 @@
   <div class="col-md-3">
     <div class="card bg-light mb-3 shadow-sm">
       <div class="card-body">
-        <h6>Auto-block threshold</h6>
+        <h6>Auto-block Threshold</h6>
         <p class="mb-0">{{ threshold_cfg.threshold }}</p>
       </div>
     </div>
@@ -47,33 +47,29 @@
 
 <div class="row">
 
-  <!-- LIVE ALERTS PANEL -->
+  <!-- LIVE ALERTS -->
   <div class="col-md-6">
     <div class="card shadow-sm">
-      <div class="card-header bg-dark text-white">
-        Live Alerts
-      </div>
+      <div class="card-header bg-dark text-white">Live Alerts</div>
       <div id="live-alerts" class="list-group list-group-flush"
-           style="max-height:430px; overflow:auto; font-size: 0.90rem;">
-      </div>
+           style="max-height:430px; overflow:auto; font-size: 0.90rem;"></div>
     </div>
   </div>
 
-  <!-- RECENT LOGS PANEL -->
+  <!-- RECENT LOGS -->
   <div class="col-md-6">
     <div class="card shadow-sm">
-      <div class="card-header bg-secondary text-white">
-        Recent Logs
-      </div>
+      <div class="card-header bg-secondary text-white">Recent Logs</div>
+
       <div class="card-body p-0">
-        <table class="table table-sm mb-0">
+        <table class="table table-sm mb-0" id="recent-logs-table">
           <thead class="table-light">
             <tr>
               <th>ID</th><th>Time</th><th>Agent</th>
               <th>Src</th><th>Dst</th><th>Prob</th><th>Status</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="recent-logs">
             {% for r in recent %}
             <tr>
               <td>{{ r.id }}</td>
@@ -88,15 +84,21 @@
           </tbody>
         </table>
       </div>
+
     </div>
   </div>
 
 </div>
 
-<!-- SOCKET.IO REAL-TIME EVENTS -->
 <script>
+  const socket = io();
+
   const alertsList = document.getElementById("live-alerts");
-  const socket = io();   // FIX: ensure socket.io client is initialized
+  const logsTable = document.getElementById("recent-logs");
+
+  const countTotal = document.getElementById("count-total");
+  const countHigh = document.getElementById("count-high");
+  const countSuspicious = document.getElementById("count-suspicious");
 
   function addAlert(msg, type) {
     const el = document.createElement("div");
@@ -105,29 +107,59 @@
     alertsList.prepend(el);
   }
 
-  // === HIGH RISK (auto-block) ===
+  // ======================================================
+  // SOCKET.IO EVENTS
+  // ======================================================
+
+  // --- HIGH RISK AUTO BLOCK ---
   socket.on("block_ip", (data) => {
     addAlert(
-      `<strong>AUTO BLOCK:</strong> ${data.ip} <span class='text-muted'>(High Risk)</span>`,
+      `<strong>HIGH RISK:</strong> ${data.ip}, prob=${data.prob.toFixed(3)}`,
       "danger"
     );
+
+    // update statistic counter
+    countHigh.innerText = parseInt(countHigh.innerText) + 1;
+    countTotal.innerText = parseInt(countTotal.innerText) + 1;
   });
 
-  // === SUSPICIOUS TRAFFIC ===
+  // --- SUSPICIOUS ---
   socket.on("suspicious", (data) => {
     addAlert(
-      `<strong>SUSPICIOUS:</strong> ${data.ip} — prob=${data.prob.toFixed(3)}`,
+      `<strong>SUSPICIOUS:</strong> ${data.ip}, prob=${data.prob.toFixed(3)}`,
       "warning"
     );
+
+    countSuspicious.innerText = parseInt(countSuspicious.innerText) + 1;
+    countTotal.innerText = parseInt(countTotal.innerText) + 1;
   });
 
-  // === MANUAL BLOCK EVENT ===
+  // --- MANUAL BLOCK ---
   socket.on("manual_block", (data) => {
-    addAlert(
-      `<strong>MANUAL BLOCK:</strong> ${data.ip}`,
-      "secondary"
-    );
+    addAlert(`<strong>MANUAL BLOCK:</strong> ${data.ip}`, "secondary");
   });
+
+  // --- NEW LOG ENTRY (REAL-TIME UPDATE OF RECENT LOGS) ---
+  socket.on("new_log", (log) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${log.id}</td>
+      <td>${new Date(log.timestamp).toLocaleString()}</td>
+      <td>${log.agent || ""}</td>
+      <td>${log.src_ip}</td>
+      <td>${log.dst_ip || ""}</td>
+      <td>${log.prob.toFixed(3)}</td>
+      <td>${log.status}</td>
+    `;
+
+    logsTable.prepend(row);
+
+    // keep only last 10 rows
+    while (logsTable.children.length > 10) {
+      logsTable.removeChild(logsTable.lastChild);
+    }
+  });
+
 </script>
 
 {% endblock %}

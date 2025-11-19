@@ -8,6 +8,10 @@ import os
 import platform
 import subprocess
 import pandas as pd
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL", "postgresql://postgres:passforpostgresql@localhost/ddosdb")
@@ -32,7 +36,7 @@ if os.path.exists(THRESH_CFG_PATH):
 else:
     threshold_cfg = {"threshold": 0.9}
 
-MANUAL_THRESHOLD = float(os.getenv("MANUAL_THRESHOLD", 0.5))
+MANUAL_THRESHOLD = float(os.getenv("MANUAL_THRESHOLD", 0.3))
 
 
 # ----------------------------------------------------------------------
@@ -195,14 +199,16 @@ def receive_features():
     src_ip = data.get("src_ip")
     status = "normal"
 
-    if prob >= threshold_cfg.get("threshold", 0.9):
+    # if prob >= threshold_cfg.get("threshold", 0.9):
+    if prob >= 0.4:
+        print(f"[ALERT] High risk packet detected from {src_ip} with prob {prob}")
         status = "high_risk"
         block_ip_local(src_ip)
-        socketio.emit("block_ip", {"ip": src_ip}, broadcast=True)
+        socketio.emit("block_ip", {"ip": src_ip, "prob": prob})
 
     elif prob >= MANUAL_THRESHOLD:
         status = "suspicious"
-        socketio.emit("suspicious", {"ip": src_ip, "prob": prob}, broadcast=True)
+        socketio.emit("suspicious", {"ip": src_ip, "prob": prob})
 
     # Save full ML feature set
     log = PacketLog(
@@ -260,7 +266,7 @@ def api_verify():
         db.session.commit()
 
         block_ip_local(row.src_ip)
-        socketio.emit("block_ip", {"ip": row.src_ip}, broadcast=True)
+        socketio.emit("block_ip", {"ip": row.src_ip})
         return jsonify({"status": "blocked"})
 
     elif action == "verify_ignore":
@@ -281,7 +287,7 @@ def api_block():
         return jsonify({"error": "missing ip"}), 400
 
     block_ip_local(ip)
-    socketio.emit("block_ip", {"ip": ip}, broadcast=True)
+    socketio.emit("block_ip", {"ip": ip})
     return jsonify({"status": "blocked"})
 
 
@@ -292,4 +298,4 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
 
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, host="0.0.0.0",port=int(os.getenv("PORT")))
