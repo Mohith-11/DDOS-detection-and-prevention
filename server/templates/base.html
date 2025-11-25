@@ -6,8 +6,158 @@
   <title>DDoS Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <!-- Added custom dark mode styling -->
+  <style>
+    :root {
+      --primary-dark: #0f172a;
+      --secondary-dark: #1e293b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --border-color: #334155;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1a1f35 100%);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%) !important;
+      border-bottom: 2px solid var(--accent-blue);
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.5rem;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-link {
+      color: var(--text-secondary) !important;
+      transition: all 0.3s ease;
+      border-bottom: 2px solid transparent;
+      padding-bottom: 0.5rem;
+    }
+
+    .nav-link:hover {
+      color: var(--accent-cyan) !important;
+      border-bottom-color: var(--accent-cyan);
+    }
+
+    .container {
+      background-color: rgba(30, 41, 59, 0.4);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+      padding: 2rem;
+      margin-top: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .card {
+      background-color: var(--secondary-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--accent-blue);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(6, 182, 212, 0.15));
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border: none;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .table {
+      color: var(--text-primary);
+    }
+
+    .table-dark {
+      background-color: var(--secondary-dark);
+      border-color: var(--border-color);
+    }
+
+    .table-dark > thead > tr > th {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-color: var(--border-color);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .table-dark > tbody > tr {
+      border-color: var(--border-color);
+    }
+
+    .table-dark > tbody > tr:hover {
+      background-color: rgba(59, 130, 246, 0.08);
+    }
+
+    .form-control {
+      background-color: var(--secondary-dark);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .form-control:focus {
+      background-color: var(--secondary-dark);
+      border-color: var(--accent-blue);
+      color: var(--text-primary);
+      box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+    }
+
+    .form-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .badge {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .badge-primary {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    hr {
+      border-color: var(--border-color);
+    }
+  </style>
 </head>
-<body class="bg-light">
+<body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand" href="{{ url_for('dashboard') }}">DDoS Console</a>

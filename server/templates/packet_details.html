@@ -1,14 +1,120 @@
 {% extends "base.html" %}
 {% block content %}
-<h3>Packet Details — ID {{ packet.id }}</h3>
 
-<p><strong>Time:</strong> {{ packet.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-<p><strong>Agent:</strong> {{ packet.agent_id }}</p>
-<p><strong>Src IP:</strong> {{ packet.src_ip }}</p>
-<p><strong>Dst IP:</strong> {{ packet.dst_ip }}</p>
-<p><strong>Probability:</strong> {{ '%.4f'|format(packet.probability) }}</p>
-<p><strong>Status:</strong> {{ packet.status }}</p>
+<style>
+/* -------------------------------------------------------
+   PACKET DETAILS PAGE – DARK GLASS UI (Dashboard Style)
+-------------------------------------------------------- */
 
+body {
+  background: linear-gradient(135deg, #0f1419, #1a2540);
+  color: #e0e6ed;
+  font-family: "Inter", sans-serif;
+}
+
+/* Headings */
+h3, h4 {
+  color: #00d4ff;
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.35);
+  letter-spacing: 1px;
+  margin-bottom: 1.2rem;
+  font-weight: 700;
+}
+
+/* Info Card Blocks */
+.info-block {
+  background: rgba(20, 30, 50, 0.55);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 14px;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  transition: 0.25s ease;
+}
+
+.info-block:hover {
+  transform: translateY(-3px);
+  border-color: rgba(0,212,255,0.35);
+  box-shadow: 0 10px 40px rgba(0,212,255,0.18);
+}
+
+/* Table (ML Features) */
+.table {
+  width: 100%;
+  background: rgba(20, 30, 50, 0.45);
+  backdrop-filter: blur(10px);
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  color: #e0e0e0;
+}
+
+.table thead th {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.18), rgba(0, 150, 200, 0.12));
+  color: #00d4ff;
+  font-weight: 600;
+  border: none;
+  letter-spacing: 0.5px;
+  padding: 10px;
+}
+
+.table tbody tr {
+  background: rgba(15, 25, 40, 0.6);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 10px;
+  transition: 0.25s ease;
+}
+
+.table tbody tr:hover {
+  background: rgba(0, 212, 255, 0.07);
+  transform: translateX(3px);
+  border-left: 3px solid #00d4ff;
+}
+
+.table td, .table th {
+  padding: 10px 14px;
+  border: none;
+  font-size: 0.9rem;
+}
+
+/* Rounded row edges */
+.table tbody tr td:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.table tbody tr td:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+/* RAW JSON Block */
+.json-box {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,212,255,0.25);
+  padding: 14px;
+  border-radius: 12px;
+  white-space: pre-wrap;
+  color: #b0f0ff;
+  font-size: 0.9rem;
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 18px rgba(0,212,255,0.1);
+}
+</style>
+
+<h3>Packet Details</h3>
+
+<!-- PACKET BASIC INFO -->
+<div class="info-block">
+  <p><strong style="color:#00d4ff;">Time:</strong> {{ packet.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+  <p><strong style="color:#00d4ff;">Agent:</strong> {{ packet.agent_id }}</p>
+  <p><strong style="color:#00d4ff;">Src IP:</strong> {{ packet.src_ip }}</p>
+  <p><strong style="color:#00d4ff;">Dst IP:</strong> {{ packet.dst_ip }}</p>
+  <p><strong style="color:#00d4ff;">Probability:</strong> {{ '%.4f'|format(packet.probability) }}</p>
+  <p><strong style="color:#00d4ff;">Status:</strong> {{ packet.status }}</p>
+</div>
+
+<!-- ML FEATURES -->
 <h4>ML Features</h4>
 <table class="table table-sm">
   <tbody>
@@ -35,7 +141,8 @@
   </tbody>
 </table>
 
+<!-- RAW JSON -->
 <h4>Raw JSON</h4>
-<pre style="background:#f8f9fa; padding:10px; border-radius:6px;">{{ packet.raw | tojson(indent=2) }}</pre>
+<pre class="json-box">{{ packet.raw | tojson(indent=2) }}</pre>
 
 {% endblock %}

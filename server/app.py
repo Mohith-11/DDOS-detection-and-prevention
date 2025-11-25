@@ -324,6 +324,13 @@ def api_verify():
 
     return jsonify({"error": "invalid action"}), 400
 
+@app.route("/packet/<int:pid>")
+def packet_details(pid):
+    row = PacketLog.query.get(pid)
+    if not row:
+        return "Packet not found", 404
+
+    return render_template("packet_details.html", packet=row)
 
 # ----------------------------------------------------------
 # MANUAL BLOCK API

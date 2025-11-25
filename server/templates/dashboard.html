@@ -1,6 +1,278 @@
 {% extends "base.html" %}
 {% block content %}
 
+<style>
+  /* Added comprehensive dark theme styling to match ddos-dashboard */
+  
+  /* Root theme variables */
+  :root {
+    --primary-color: #00d4ff;
+    --secondary-color: #0099cc;
+    --danger-color: #ff3366;
+    --warning-color: #ffaa00;
+    --success-color: #00ff88;
+    --dark-bg: #0f1419;
+    --card-bg: rgba(20, 30, 50, 0.8);
+    --border-color: rgba(0, 212, 255, 0.2);
+  }
+
+  body {
+    background: linear-gradient(135deg, #0f1419 0%, #1a2540 100%);
+    color: #e0e0e0;
+  }
+
+  /* Metric Cards Styling */
+  .card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 212, 255, 0.4) !important;
+    box-shadow: 0 12px 48px rgba(0, 212, 255, 0.15);
+  }
+
+  .card-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  .card-text {
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  .display-6 {
+    font-size: 2.5rem;
+  }
+
+  /* Primary Card (Total Logs) */
+  .bg-primary {
+    background: linear-gradient(135deg, rgba(0, 150, 200, 0.3), rgba(0, 212, 255, 0.2)) !important;
+    border-color: var(--secondary-color) !important;
+  }
+
+  .bg-primary .card-text {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Danger Card (High Risk) */
+  .bg-danger {
+    background: linear-gradient(135deg, rgba(255, 51, 102, 0.2), rgba(255, 100, 130, 0.15)) !important;
+    border-color: var(--danger-color) !important;
+  }
+
+  .bg-danger .card-text {
+    color: #ff6688;
+  }
+
+  /* Warning Card (Suspicious) */
+  .bg-warning {
+    background: linear-gradient(135deg, rgba(255, 170, 0, 0.2), rgba(255, 200, 100, 0.15)) !important;
+    border-color: var(--warning-color) !important;
+  }
+
+  .bg-warning .card-text {
+    color: #ffcc66;
+  }
+
+  /* Light Card (Threshold) */
+  .bg-light {
+    background: linear-gradient(135deg, rgba(100, 150, 200, 0.15), rgba(80, 120, 180, 0.1)) !important;
+    border-color: var(--secondary-color) !important;
+  }
+
+  .bg-light h6 {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+  }
+
+  .bg-light p {
+    color: #b39d20a7;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  /* Card Header Styling */
+  .card-header {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(0, 150, 200, 0.1)) !important;
+    border-bottom: 2px solid var(--border-color) !important;
+    color: var(--primary-color) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+    padding: 1rem;
+  }
+
+  /* Alert List Styling */
+  .list-group-flush {
+    background: transparent;
+  }
+
+  .list-group-item {
+    background: rgba(30, 45, 70, 0.6);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-color);
+    color:  #ffaa00;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    margin: 0.5rem;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }
+
+  .list-group-item:hover {
+    background: rgba(248, 251, 255, 0.8);
+    transform: translateX(4px);
+  }
+
+  /* Alert Type Colors */
+  .list-group-item-danger {
+    border-left-color: var(--danger-color) !important;
+    background: rgba(255, 51, 102, 0.1);
+  }
+
+  .list-group-item-danger strong {
+    color: #ff6688;
+  }
+
+  .list-group-item-warning {
+    border-left-color: var(--warning-color) !important;
+    background: rgba(255, 170, 0, 0.1);
+  }
+
+  .list-group-item-warning strong {
+    color: #ffcc66;
+  }
+
+  .list-group-item-secondary {
+    border-left-color: #888888 !important;
+    background: rgba(136, 136, 136, 0.1);
+  }
+
+  .list-group-item-secondary strong {
+    color: #bbbbbb;
+  }
+
+  /* ------------------------------------------------- */
+  /*  UPDATED TABLE STYLING (Perfect UI Match)         */
+  /* ------------------------------------------------- */
+
+  .table {
+    width: 100%;
+    background: rgba(20, 30, 50, 0.45);
+    backdrop-filter: blur(10px);
+    border-collapse: separate;
+    border-spacing: 0 6px;
+    color: #e0e0e0;
+  }
+
+  .table thead th {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.18), rgba(0, 150, 200, 0.12));
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    padding: 12px;
+  }
+
+  .table tbody tr {
+  background: rgba(10, 20, 35, 0.55) !important;  /* darker bluish glass */
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+/* Hover effect (kept same) */
+.table tbody tr:hover {
+  background: rgba(0, 212, 255, 0.07) !important;
+  border-left: 3px solid var(--primary-color);
+  transform: translateX(3px);
+}
+
+  .table tbody td {
+    padding: 10px 14px;
+    border: none;
+    vertical-align: middle;
+    font-size: 0.85rem;
+    color: #23b6b6;
+  }
+
+  .table tbody tr td:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+  }
+  .table.table-sm tr,
+.table.table-sm td,
+.table.table-sm th {
+  background-color: transparent !important;
+}
+
+  .table tbody tr td:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+  }
+
+  .table-light {
+    background: transparent !important;
+  }
+
+  /* ------------------------------------------------- */
+
+  /* Row Container */
+  .row {
+    margin-bottom: 2rem;
+  }
+
+  .col-md-3,
+  .col-md-6 {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Shadow and effects */
+  .shadow-sm {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .display-6 {
+      font-size: 1.8rem;
+    }
+
+    .card-body {
+      padding: 1rem;
+    }
+
+    .table {
+      font-size: 0.85rem;
+    }
+  }
+</style>
+
 <div class="row mb-3">
 
   <!-- Total Logs -->
@@ -155,6 +427,16 @@
 
     while (logsTable.children.length > 10) {
       logsTable.removeChild(logsTable.lastChild);
+    }
+  });
+   document.addEventListener("click", function (e) {
+    const row = e.target.closest("tr");
+    if (!row) return;
+
+    const status = row.children[6]?.innerText?.trim();
+    if (status === "suspicious") {
+      const id = row.children[0].innerText.trim();
+      window.location.href = `/packet/${id}`;
     }
   });
 

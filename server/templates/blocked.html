@@ -1,6 +1,114 @@
 {% extends "base.html" %}
 {% block content %}
 
+<style>
+  /* Added dark mode styling with professional gradient background */
+  body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f0f1f 100%);
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  h3 {
+    color: #06b6d4;
+    font-weight: 700;
+    font-size: 28px;
+    margin-bottom: 24px;
+    text-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+    letter-spacing: 0.5px;
+  }
+
+  /* Styled table with glassmorphism effect and dark theme */
+  .table {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(6, 182, 212, 0.1);
+  }
+
+  .table thead {
+    background: linear-gradient(90deg, rgba(6, 182, 212, 0.15) 0%, rgba(14, 165, 233, 0.1) 100%);
+    border-bottom: 2px solid rgba(6, 182, 212, 0.3);
+  }
+
+  .table thead th {
+    color: #06b6d4;
+    font-weight: 700;
+    padding: 16px 12px;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border: none;
+  }
+
+  .table tbody tr {
+    border-bottom: 1px solid rgba(6, 182, 212, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .table tbody tr:hover {
+    background: rgba(6, 182, 212, 0.08);
+    box-shadow: inset 0 0 20px rgba(6, 182, 212, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .table tbody td {
+    padding: 14px 12px;
+    color: #cbd5e1;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  /* Color coding for different IP information */
+  .table tbody td:first-child {
+    color: #10b981;
+    font-weight: 600;
+    font-family: 'Monaco', 'Courier New', monospace;
+    letter-spacing: 0.5px;
+  }
+    .table.table-sm tr,
+.table.table-sm td,
+.table.table-sm th {
+  background-color: transparent !important;
+}
+
+  .table tbody td:nth-child(4) {
+    color: #ef4444;
+    font-weight: 500;
+  }
+
+  .table tbody td:nth-child(5) {
+    color: #f97316;
+    font-weight: 500;
+  }
+
+  .table tbody td:nth-child(2),
+  .table tbody td:nth-child(3) {
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
+  /* Smooth scrollbar */
+  .table::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .table::-webkit-scrollbar-track {
+    background: rgba(6, 182, 212, 0.05);
+  }
+
+  .table::-webkit-scrollbar-thumb {
+    background: rgba(6, 182, 212, 0.3);
+    border-radius: 4px;
+  }
+
+  .table::-webkit-scrollbar-thumb:hover {
+    background: rgba(6, 182, 212, 0.5);
+  }
+</style>
+
 <h3>Blocked IPs (Active)</h3>
 
 <table class="table table-sm">
