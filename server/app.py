@@ -22,9 +22,9 @@ db = SQLAlchemy(app)
 # ----------------------------------------------------------
 # LOAD MODELS
 # ----------------------------------------------------------
-model = joblib.load(os.getenv("MODEL_PATH", "rf_model.pkl"))
-scaler = joblib.load(os.getenv("SCALER_PATH", "scaler.pkl"))
-selector = joblib.load(os.getenv("SELECTOR_PATH", "selector.pkl"))
+model = joblib.load(os.getenv("MODEL_PATH"))
+scaler = joblib.load(os.getenv("SCALER_PATH"))
+selector = joblib.load(os.getenv("SELECTOR_PATH"))
 
 # Threshold config
 THRESH_CFG_PATH = os.getenv("THRESH_PATH", "threshold.json")
