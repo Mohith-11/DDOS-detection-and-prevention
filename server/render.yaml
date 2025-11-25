@@ -1,7 +1,7 @@
 services:
   - type: web
     name: flask-ddos-server
-    runtime: python
+    runtime: python-3.12.3
     region: singapore
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn server.app:app -k gevent -w 1 -b 0.0.0.0:$PORT"
