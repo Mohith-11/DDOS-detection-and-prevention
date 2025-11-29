@@ -34,11 +34,11 @@ RUN mkdir -p /app/models_backup && \
     mkdir -p /app/templates
 
 # Expose the Render port (not required but OK)
-EXPOSE $PORT
+EXPOSE 5000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get(f'http://localhost:{${PORT}}')" || exit 1
+    CMD python -c "import requests; requests.get('http://localhost:5000')" || exit 1
 
 # Run the application with Gunicorn and Gevent
-CMD ["gunicorn", "--worker-class", "gevent", "--bind", "0.0.0.0:${PORT}", "--workers", "1", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "wsgi:app"]
+CMD ["/bin/sh", "-c", "gunicorn --worker-class gevent --bind 0.0.0.0:${PORT:-5000} --workers 1 --timeout 60 --access-logfile - --error-logfile - wsgi:app"]
