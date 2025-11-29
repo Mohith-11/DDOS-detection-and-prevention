@@ -5,7 +5,7 @@ services:
     pythonVersion: 3.12.0   # <<--- THIS IS THE FIX
     region: singapore
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn server.app:app -k gevent -w 1 -b 0.0.0.0:$PORT"
+    startCommand: "gunicorn server.app:app -w 1 -b 0.0.0.0:$PORT"
     envVars:
       - key: FLASK_ENV
         value: production
