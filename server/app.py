@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URL", "postgresql://postgres:passforpostgresql@localhost/ddosdb")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
